@@ -7,6 +7,9 @@ interface Classifier {
 
 
 	public function setTokenizer(ClassifierTokenizer $Tokenizer);
+	
+	
+	public function setSpamThreshold($threshold);
 
 
 	public function check(ClassifierDocument $Document);

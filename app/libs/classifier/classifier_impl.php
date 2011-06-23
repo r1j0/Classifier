@@ -32,6 +32,11 @@ class ClassifierImpl implements Classifier {
 	}
 
 
+	public function setSpamThreshold($threshold) {
+		$this->_spamThreshold = $threshold;
+	}
+
+
 	public function check(ClassifierDocument $Document) {
 		$tokens = $this->_Tokenizer->tokenize($Document);
 		$Objects = $this->_Store->get($tokens);
@@ -49,14 +54,14 @@ class ClassifierImpl implements Classifier {
 				$i++;
 				continue;
 			}
-				
-				
+
+
 			$multiplierResult = bcmul($multiplierResult, $ClassifierObjects->getSpamicity(), 10);
 			$additionResult = bcmul($additionResult, (1 - $ClassifierObjects->getSpamicity()), 10);
 		}
 
 		$denominator = bcadd($multiplierResult, $additionResult, 10);
-		
+
 		if ($multiplierResult == 0 || $denominator == 0) {
 			$this->_rating = 0.0;
 		} else {
