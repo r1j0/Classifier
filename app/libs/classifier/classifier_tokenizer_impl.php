@@ -7,7 +7,10 @@ class ClassifierTokenizerImpl implements ClassifierTokenizer {
 		$tokens = array();
 		
 		$plainText = strtolower(strip_tags($Document->getText()));
-		$tokens['text'] = explode(" ", $plainText);
+		$plainText = preg_match_all('[\w+]', $plainText, $matches);
+		$array = array_filter($matches[0], 'trim');
+		$array = array_filter($matches[0], 'strlen');
+		$tokens['text'] = $array;
 		
 		return $tokens;
 	}

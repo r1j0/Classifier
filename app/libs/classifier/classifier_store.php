@@ -6,7 +6,7 @@ interface ClassifierStore {
 	public function get($tokens);
 
 
-	public function update(ClassifierObjects $Objects);
+	public function update($classifierObjects);
 
 
 	public function hamTotal();

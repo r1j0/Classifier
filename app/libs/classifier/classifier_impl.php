@@ -11,13 +11,15 @@ class ClassifierImpl implements Classifier {
 
 	private $_Store;
 	private $_Tokenizer;
+	private $_Objects;
 	private $_rating = 0;
 	private $_spamThreshold;
 
 
-	public function __construct(ClassifierTokenizer $Tokinzer = null, ClassifierStore $Store = null) {
+	public function __construct(ClassifierTokenizer $Tokinzer = null, ClassifierStore $Store = null, ClassifierObjects $Objects = null) {
 		$this->_Tokenizer = $Tokinzer ? $Tokenizer : new ClassifierTokenizerImpl();
 		$this->_Store = $Store ? $Store : new ClassifierStoreImpl();
+		$this->_Objects = $Objects ? $Objects : new ClassifierObjectsImpl();
 		$this->_spamThreshold = self::SPAM_THRESHOLD;
 	}
 
@@ -44,18 +46,18 @@ class ClassifierImpl implements Classifier {
 		$multiplierResult = 1;
 		$additionResult = 1;
 		$i = 0;
-
-		foreach ($Objects as $ClassifierObjects) {
+		
+		foreach ($Objects as $ClassifierObject) {
 			if ($i == 0) {
-				$multiplierResult = $ClassifierObjects->getSpamicity();
-				$additionResult = bcsub(1, $ClassifierObjects->getSpamicity(), 10);
+				$multiplierResult = $ClassifierObject->getSpamicity();
+				$additionResult = bcsub(1, $ClassifierObject->getSpamicity(), 10);
 				$i++;
 				continue;
 			}
 
 
-			$multiplierResult = bcmul($multiplierResult, $ClassifierObjects->getSpamicity(), 10);
-			$additionResult = bcmul($additionResult, (1 - $ClassifierObjects->getSpamicity()), 10);
+			$multiplierResult = bcmul($multiplierResult, $ClassifierObject->getSpamicity(), 10);
+			$additionResult = bcmul($additionResult, (1 - $ClassifierObject->getSpamicity()), 10);
 		}
 
 		$denominator = bcadd($multiplierResult, $additionResult, 10);
@@ -69,7 +71,38 @@ class ClassifierImpl implements Classifier {
 
 
 	public function learn(ClassifierDocument $Document, $category) {
-
+		$tokens = $this->_Tokenizer->tokenize($Document);
+		$Objects = $this->_Store->get($tokens);
+		
+		$updatedObjects = array();
+		
+		debug('LEARNING...');
+		
+		$hamTotal = ($category == self::HAM) ? $this->_Store->hamTotal() + 1: $this->_Store->hamTotal();
+		$spamTotal = ($category == self::SPAM) ? $this->_Store->spamTotal() + 1: $this->_Store->spamTotal();
+		
+		foreach ($Objects as $ClassifierObject) {
+			$type = $ClassifierObject->getType();
+			$value = $ClassifierObject->getValue();
+			$hamCount = ($category == self::HAM) ? $ClassifierObject->getHamCount() + 1 : $ClassifierObject->getHamCount();
+			$spamCount = ($category == self::SPAM) ? $ClassifierObject->getSpamCount() + 1 : $ClassifierObject->getSpamCount();
+			
+			if ($ClassifierObject->getHamCount() == 0 && $ClassifierObject->getSpamCount() == 0) {
+				$spamicity = self::INITIAL_THRESHOLD;
+			} else if ($ClassifierObject->getHamCount() > 0 && $ClassifierObject->getSpamCount() == 0) {
+				$spamicity = 0.100;
+			} else if ($ClassifierObject->getHamCount() == 0 && $ClassifierObject->getSpamCount() > 0) {
+				$spamicity = 0.990;
+			} else {
+				$hamPropability = bcdiv($hamCount, $hamTotal, 10);
+				$spamPropability = bcdiv($spamCount, $spamTotal, 10);
+				$spamicity = bcdiv($spamPropability, bcadd($spamPropability, $hamPropability, 10), 3);
+			}
+			
+			$updatedObjects[] = $this->_createObject($type, $value, $hamCount, $spamCount, $spamicity);
+		}
+		
+		return $this->_Store->update($updatedObjects);
 	}
 
 
@@ -91,5 +124,17 @@ class ClassifierImpl implements Classifier {
 	public function getRating() {
 		return $this->_rating;
 	}
-
+	
+	
+	private function _createObject($type, $value, $hamCount, $spamCount, $spamicity) {
+		$Object = new ClassifierObjectsImpl();
+		$Object->setType($type);
+		$Object->setValue($value);
+		$Object->setHamCount($hamCount);
+		$Object->setSpamCount($spamCount);
+		$Object->setSpamicity($spamicity);
+	
+		return $Object;
+	}
+	
 }

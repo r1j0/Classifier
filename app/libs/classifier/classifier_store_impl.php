@@ -22,14 +22,14 @@ class ClassifierStoreImpl implements ClassifierStore {
 			));
 			
 			foreach ($entries as $entry) {
-				 $objects[] = $this->_getObject($entry['Classifier']['type'], $entry['Classifier']['value'], $entry['Classifier']['ham_count'], $entry['Classifier']['spam_count'], $entry['Classifier']['spamicity']);
+				 $objects[] = $this->_createObject($entry['Classifier']['type'], $entry['Classifier']['value'], $entry['Classifier']['ham_count'], $entry['Classifier']['spam_count'], $entry['Classifier']['spamicity']);
 			}
 			
 			$foundValues = Set::extract($entries, '{n}.Classifier.value');
 			$notFoundValues = array_diff($values, $foundValues);
 			
 			foreach ($notFoundValues as $value) {
-				$objects[] = $this->_getObject($type, $value, 0, 0, ClassifierImpl::INITIAL_THRESHOLD);
+				$objects[] = $this->_createObject($type, $value, 0, 0, ClassifierImpl::INITIAL_THRESHOLD);
 			}
 		}
 		
@@ -37,22 +37,22 @@ class ClassifierStoreImpl implements ClassifierStore {
 	}
 	
 	
-	public function update(ClassifierObjects $Objects) {
+	public function update($classifierObjects) {
 		
 	}
 	
 	
 	public function hamTotal() {
-		return rand(1000, 5000);
+		return 2000;
 	}
 	
 	
 	public function spamTotal() {
-		return rand(1000, 5000);
+		return 2000;
 	}
 	
 	
-	private function _getObject($type, $value, $hamCount, $spamCount, $spamicity) {
+	private function _createObject($type, $value, $hamCount, $spamCount, $spamicity) {
 		$Object = new ClassifierObjectsImpl();
 		$Object->setType($type);
 		$Object->setValue($value);
