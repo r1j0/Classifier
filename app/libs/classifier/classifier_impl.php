@@ -41,8 +41,6 @@ class ClassifierImpl implements Classifier {
 		$tokens = $this->_Tokenizer->tokenize($Document);
 		$Objects = $this->_Store->get($tokens);
 
-		$hamTotal = $this->_Store->hamTotal();
-		$spamTotal = $this->_Store->spamTotal();
 		$multiplierResult = 1;
 		$additionResult = 1;
 		$i = 0;
