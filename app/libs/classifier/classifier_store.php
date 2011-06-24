@@ -8,10 +8,4 @@ interface ClassifierStore {
 
 	public function update($classifierObjects);
 
-
-	public function hamTotal();
-
-
-	public function spamTotal();
-
 }

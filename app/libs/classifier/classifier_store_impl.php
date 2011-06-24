@@ -4,6 +4,8 @@ class ClassifierStoreImpl implements ClassifierStore {
 	
 	private $_Objects;
 	private $_Model;
+	private $_hamTotal;
+	private $_spamTotal;
 	
 	public function __construct(ClassifierObjects $Objects) {
 		$this->_Objects = $Objects ? $Objects : new ClassifierObjectsImpl();
@@ -23,14 +25,14 @@ class ClassifierStoreImpl implements ClassifierStore {
 			));
 			
 			foreach ($entries as $entry) {
-				 $objects[] = $this->_createObject($entry['Classifier']['type'], $entry['Classifier']['value'], $entry['Classifier']['ham_count'], $entry['Classifier']['spam_count'], $entry['Classifier']['spamicity']);
+				 $objects[] = $this->_createObject($entry['Classifier']['id'], $entry['Classifier']['type'], $entry['Classifier']['value'], $entry['Classifier']['ham_count'], $entry['Classifier']['spam_count'], $entry['Classifier']['spamicity']);
 			}
 			
 			$foundValues = Set::extract($entries, '{n}.Classifier.value');
 			$notFoundValues = array_diff($values, $foundValues);
 			
 			foreach ($notFoundValues as $value) {
-				$objects[] = $this->_createObject($type, $value, 0, 0, ClassifierImpl::INITIAL_THRESHOLD);
+				$objects[] = $this->_createObject(null, $type, $value, 0, 0, ClassifierImpl::INITIAL_SPAMICITY_THRESHOLD);
 			}
 		}
 		
@@ -39,22 +41,24 @@ class ClassifierStoreImpl implements ClassifierStore {
 	
 	
 	public function update($classifierObjects) {
-		
+		foreach ($classifierObjects as $Object) {
+			$data = array();
+			$data['Classifier']['id'] = $Object->getId();
+			$data['Classifier']['type'] = $Object->getType();
+			$data['Classifier']['value'] = $Object->getValue();
+			$data['Classifier']['ham_count'] = $Object->getHamCount();
+			$data['Classifier']['spam_count'] = $Object->getSpamCount();
+			$data['Classifier']['spamicity'] = $Object->getSpamicity();
+			
+			$this->_Model->create();
+			$this->_Model->save($data, false, array('id', 'type', 'value', 'ham_count', 'spam_count', 'spamicity'));
+		}
 	}
 	
 	
-	public function hamTotal() {
-		return 2000;
-	}
-	
-	
-	public function spamTotal() {
-		return 2000;
-	}
-	
-	
-	private function _createObject($type, $value, $hamCount, $spamCount, $spamicity) {
+	private function _createObject($id, $type, $value, $hamCount, $spamCount, $spamicity) {
 		$Objects = $this->_Objects->getInstance();
+		$Objects->setId($id);
 		$Objects->setType($type);
 		$Objects->setValue($value);
 		$Objects->setHamCount($hamCount);

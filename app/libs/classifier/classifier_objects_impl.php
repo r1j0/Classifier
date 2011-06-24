@@ -2,6 +2,7 @@
 
 class ClassifierObjectsImpl implements ClassifierObjects {
 
+	private $_id;
 	private $_type;
 	private $_value;
 	private $_hamCount;
@@ -11,6 +12,16 @@ class ClassifierObjectsImpl implements ClassifierObjects {
 
 	public function getInstance() {
 		return new ClassifierObjectsImpl();
+	}
+
+
+	public function getId() {
+		return $this->_id;
+	}
+
+
+	public function setId($id) {
+		$this->_id = $id;
 	}
 
 

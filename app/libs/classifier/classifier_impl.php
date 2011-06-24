@@ -7,9 +7,10 @@ class ClassifierImpl implements Classifier {
 	const HAM = 0;
 	const SPAM = 1;
 	const SPAM_THRESHOLD = 0.55;
-	const INITIAL_THRESHOLD = 0.4;
-	const INITIAL_HAM_THRESHOLD = 0.1;
-	const INITIAL_SPAM_THRESHOLD = 0.99;
+	const MINIMUM_COUNT = 5;
+	const INITIAL_SPAMICITY_THRESHOLD = 0.4;
+	const INITIAL_HAM_SPAMICITY_THRESHOLD = 0.1;
+	const INITIAL_SPAM_SPAMICITY_THRESHOLD = 0.99;
 
 	private $_Store;
 	private $_Tokenizer;
@@ -72,41 +73,42 @@ class ClassifierImpl implements Classifier {
 	}
 
 
-	public function learn(ClassifierDocument $Document, $category) {
+	public function learn(ClassifierDocument $Document, $hamTotal, $spamTotal, $category) {
 		$tokens = $this->_Tokenizer->tokenize($Document);
 		$Objects = $this->_Store->get($tokens);
 
-		$hamTotal = ($category == self::HAM) ? $this->_Store->hamTotal() + 1: $this->_Store->hamTotal();
-		$spamTotal = ($category == self::SPAM) ? $this->_Store->spamTotal() + 1: $this->_Store->spamTotal();
-		
+		$hamTotal = ($category == self::HAM) ? $hamTotal + 1: $hamTotal;
+		$spamTotal = ($category == self::SPAM) ? $spamTotal + 1: $spamTotal;
+
 		$updatedObjects = array();
 
 		foreach ($Objects as $ClassifierObject) {
+			$id = $ClassifierObject->getId();
 			$type = $ClassifierObject->getType();
 			$value = $ClassifierObject->getValue();
 			$hamCount = ($category == self::HAM) ? $ClassifierObject->getHamCount() + 1 : $ClassifierObject->getHamCount();
 			$spamCount = ($category == self::SPAM) ? $ClassifierObject->getSpamCount() + 1 : $ClassifierObject->getSpamCount();
-				
+
 			if ($ClassifierObject->getHamCount() == 0 && $ClassifierObject->getSpamCount() == 0) {
-				$spamicity = self::INITIAL_THRESHOLD;
-			} else if ($ClassifierObject->getHamCount() > 0 && $ClassifierObject->getSpamCount() == 0) {
-				$spamicity = self::INITIAL_HAM_THRESHOLD;
-			} else if ($ClassifierObject->getHamCount() == 0 && $ClassifierObject->getSpamCount() > 0) {
-				$spamicity = self::INITIAL_SPAM_THRESHOLD;
+				$spamicity = self::INITIAL_SPAMICITY_THRESHOLD;
+			} else if ($ClassifierObject->getHamCount() < self::MINIMUM_COUNT && $ClassifierObject->getSpamCount() == 0) {
+				$spamicity = self::INITIAL_HAM_SPAMICITY_THRESHOLD;
+			} else if ($ClassifierObject->getHamCount() == 0 && $ClassifierObject->getSpamCount() < self::MINIMUM_COUNT) {
+				$spamicity = self::INITIAL_SPAM_SPAMICITY_THRESHOLD;
 			} else {
 				$hamPropability = bcdiv($hamCount, $hamTotal, 10);
 				$spamPropability = bcdiv($spamCount, $spamTotal, 10);
 				$spamicity = bcdiv($spamPropability, bcadd($spamPropability, $hamPropability, 10), 3);
 			}
-				
-			$updatedObjects[] = $this->_createObject($type, $value, $hamCount, $spamCount, $spamicity);
+
+			$updatedObjects[] = $this->_createObject($id, $type, $value, $hamCount, $spamCount, $spamicity);
 		}
 
 		return $this->_Store->update($updatedObjects);
 	}
 
 
-	public function falsePositive(ClassifierDocument $Document) {
+	public function falsePositive(ClassifierDocument $Document, $hamTotal, $spamTotal) {
 
 	}
 
@@ -126,8 +128,9 @@ class ClassifierImpl implements Classifier {
 	}
 
 
-	private function _createObject($type, $value, $hamCount, $spamCount, $spamicity) {
+	private function _createObject($id, $type, $value, $hamCount, $spamCount, $spamicity) {
 		$Objects = $this->_Objects->getInstance();
+		$Objects->setId($id);
 		$Objects->setType($type);
 		$Objects->setValue($value);
 		$Objects->setHamCount($hamCount);

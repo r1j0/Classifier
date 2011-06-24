@@ -15,10 +15,10 @@ interface Classifier {
 	public function check(ClassifierDocument $Document);
 
 
-	public function learn(ClassifierDocument $Document, $category);
+	public function learn(ClassifierDocument $Document, $hamTotal, $spamTotal, $category);
 
 
-	public function falsePositive(ClassifierDocument $Document);
+	public function falsePositive(ClassifierDocument $Document, $hamTotal, $spamTotal);
 
 
 	public function isHam();
