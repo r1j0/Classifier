@@ -80,7 +80,7 @@ class ClassifierImpl implements Classifier {
 		$hamTotal = ($category == self::HAM) ? $hamTotal + 1: $hamTotal;
 		$spamTotal = ($category == self::SPAM) ? $spamTotal + 1: $spamTotal;
 
-		$updatedObjects = array();
+		$unfilteredValues = array();
 
 		foreach ($Objects as $ClassifierObject) {
 			$id = $ClassifierObject->getId();
@@ -95,15 +95,20 @@ class ClassifierImpl implements Classifier {
 				$spamicity = self::INITIAL_HAM_SPAMICITY_THRESHOLD;
 			} else if ($ClassifierObject->getHamCount() == 0 && $ClassifierObject->getSpamCount() < self::MINIMUM_COUNT) {
 				$spamicity = self::INITIAL_SPAM_SPAMICITY_THRESHOLD;
+			} else if ($spamTotal == 0) {
+				$spamicity = $category == self::HAM ? self::INITIAL_HAM_SPAMICITY_THRESHOLD : self::INITIAL_SPAM_SPAMICITY_THRESHOLD;
 			} else {
 				$hamPropability = bcdiv($hamCount, $hamTotal, 10);
 				$spamPropability = bcdiv($spamCount, $spamTotal, 10);
 				$spamicity = bcdiv($spamPropability, bcadd($spamPropability, $hamPropability, 10), 3);
 			}
 
-			$updatedObjects[] = $this->_createObject($id, $type, $value, $hamCount, $spamCount, $spamicity);
+			$unfilteredValues[$type][] = array('id' => $id, 'type' => $type, 'value' => $value, 'ham_count' => $hamCount, 'spam_count' => $spamCount, 'spamicity' => $spamicity);
 		}
-
+		
+		$filteredValues = $this->_filterValues($unfilteredValues, $category);
+		$updatedObjects = $this->_createObjects($filteredValues);
+		
 		return $this->_Store->update($updatedObjects);
 	}
 
@@ -138,6 +143,40 @@ class ClassifierImpl implements Classifier {
 		$Objects->setSpamicity($spamicity);
 
 		return $Objects;
+	}
+	
+	
+	private function _createObjects($filteredValues) {
+		$updatedObjects = array();
+
+		foreach($filteredValues as $values) {
+			foreach($values as $value) {
+				$updatedObjects[] = $this->_createObject($value['id'], $value['type'], $value['value'], $value['ham_count'], $value['spam_count'], $value['spamicity']);
+			}
+		}
+		
+		return $updatedObjects;
+	}
+	
+	
+	private function _filterValues($unfilteredValues, $category) {
+		$filteredValues = array();
+		
+		foreach($unfilteredValues as $type => $values) {
+			foreach ($values as $value) {
+				if (isset($filteredValues[$type][$value['value']])) {
+					if ($category == self::HAM) {
+						$filteredValues[$type][$value['value']]['ham_count'] = $filteredValues[$type][$value['value']]['ham_count'] + 1;
+					} else if ($category == self::SPAM) {
+						$filteredValues[$type][$value['value']]['spam_count'] = $filteredValues[$type][$value['value']]['spam_count'] + 1;
+					}
+				} else {
+					$filteredValues[$type][$value['value']] = $value;
+				}
+			}
+		}
+		
+		return $filteredValues;
 	}
 
 }
