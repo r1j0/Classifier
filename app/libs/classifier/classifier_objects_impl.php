@@ -9,6 +9,11 @@ class ClassifierObjectsImpl implements ClassifierObjects {
 	private $_spamicity;
 
 
+	public function getInstance() {
+		return new ClassifierObjectsImpl();
+	}
+
+
 	public function getType() {
 		return $this->_type;
 	}
@@ -48,12 +53,12 @@ class ClassifierObjectsImpl implements ClassifierObjects {
 		$this->_spamCount = $spamCount;
 	}
 
-	
+
 	public function getSpamicity() {
 		return $this->_spamicity;
 	}
-	
-	
+
+
 	public function setSpamicity($spamicity) {
 		$this->_spamicity = $spamicity;
 	}

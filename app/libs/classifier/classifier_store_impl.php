@@ -2,10 +2,11 @@
 
 class ClassifierStoreImpl implements ClassifierStore {
 	
+	private $_Objects;
 	private $_Model;
 	
-	
-	public function __construct() {
+	public function __construct(ClassifierObjects $Objects) {
+		$this->_Objects = $Objects ? $Objects : new ClassifierObjectsImpl();
 		$this->_Model = ClassRegistry::init('Classifier');
 	}
 	
@@ -53,14 +54,14 @@ class ClassifierStoreImpl implements ClassifierStore {
 	
 	
 	private function _createObject($type, $value, $hamCount, $spamCount, $spamicity) {
-		$Object = new ClassifierObjectsImpl();
-		$Object->setType($type);
-		$Object->setValue($value);
-		$Object->setHamCount($hamCount);
-		$Object->setSpamCount($spamCount);
-		$Object->setSpamicity($spamicity);
-		
-		return $Object;
+		$Objects = $this->_Objects->getInstance();
+		$Objects->setType($type);
+		$Objects->setValue($value);
+		$Objects->setHamCount($hamCount);
+		$Objects->setSpamCount($spamCount);
+		$Objects->setSpamicity($spamicity);
+
+		return $Objects;
 	}
 	
 }
