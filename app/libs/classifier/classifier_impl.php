@@ -88,21 +88,8 @@ class ClassifierImpl implements Classifier {
 			$value = $ClassifierObject->getValue();
 			$hamCount = ($category == self::HAM) ? $ClassifierObject->getHamCount() + 1 : $ClassifierObject->getHamCount();
 			$spamCount = ($category == self::SPAM) ? $ClassifierObject->getSpamCount() + 1 : $ClassifierObject->getSpamCount();
-
-			if ($ClassifierObject->getHamCount() == 0 && $ClassifierObject->getSpamCount() == 0) {
-				$spamicity = self::INITIAL_SPAMICITY_THRESHOLD;
-			} else if ($ClassifierObject->getHamCount() < self::MINIMUM_COUNT && $ClassifierObject->getSpamCount() == 0) {
-				$spamicity = self::INITIAL_HAM_SPAMICITY_THRESHOLD;
-			} else if ($ClassifierObject->getHamCount() == 0 && $ClassifierObject->getSpamCount() < self::MINIMUM_COUNT) {
-				$spamicity = self::INITIAL_SPAM_SPAMICITY_THRESHOLD;
-			} else if ($spamTotal == 0) {
-				$spamicity = $category == self::HAM ? self::INITIAL_HAM_SPAMICITY_THRESHOLD : self::INITIAL_SPAM_SPAMICITY_THRESHOLD;
-			} else {
-				$hamPropability = bcdiv($hamCount, $hamTotal, 10);
-				$spamPropability = bcdiv($spamCount, $spamTotal, 10);
-				$spamicity = bcdiv($spamPropability, bcadd($spamPropability, $hamPropability, 10), 3);
-			}
-
+			$spamicity = $this->_calculateSpamicity($hamCount, $spamCount, $hamTotal, $spamTotal);
+			
 			$unfilteredValues[$type][] = array('id' => $id, 'type' => $type, 'value' => $value, 'ham_count' => $hamCount, 'spam_count' => $spamCount, 'spamicity' => $spamicity);
 		}
 		
@@ -178,5 +165,25 @@ class ClassifierImpl implements Classifier {
 		
 		return $filteredValues;
 	}
-
+	
+	
+	private function _calculateSpamicity($hamCount, $spamCount, $hamTotal, $spamTotal) {
+		$spamicity = self::INITIAL_SPAMICITY_THRESHOLD;
+		
+		if ($hamCount == 0 && $spamCount == 0) {
+			$spamicity = self::INITIAL_SPAMICITY_THRESHOLD;
+		} else if ($hamCount < self::MINIMUM_COUNT && $spamCount == 0) {
+			$spamicity = self::INITIAL_HAM_SPAMICITY_THRESHOLD;
+		} else if ($hamCount == 0 && $spamCount < self::MINIMUM_COUNT) {
+			$spamicity = self::INITIAL_SPAM_SPAMICITY_THRESHOLD;
+		} else if ($spamTotal == 0) {
+			$spamicity = $category == self::HAM ? self::INITIAL_HAM_SPAMICITY_THRESHOLD : self::INITIAL_SPAM_SPAMICITY_THRESHOLD;
+		} else {
+			$hamPropability = bcdiv($hamCount, $hamTotal, 10);
+			$spamPropability = bcdiv($spamCount, $spamTotal, 10);
+			$spamicity = bcdiv($spamPropability, bcadd($spamPropability, $hamPropability, 10), 3);
+		}
+		
+		return $spamicity;
+	}
 }
