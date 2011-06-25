@@ -45,6 +45,12 @@ interface Classifier {
 	 * Classifies the given ClassifierDocument by calculating a word specific
 	 * spamicity value.
 	 *
+	 * The variable $hamTotal is the total number of ham documents that will be learned and
+	 * variable $spamTotal is the total number of spam documents that will be learned.
+	 *
+	 * Variable $category is one of the constants Classifier:HAM or Classifier::SPAM which the
+	 * to be learned ClassifierDocument will be classified as.
+	 *
 	 * @param ClassifierDocument $Document
 	 * @param int $hamTotal
 	 * @param int $spamTotal
