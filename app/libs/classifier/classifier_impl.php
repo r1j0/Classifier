@@ -80,22 +80,29 @@ class ClassifierImpl implements Classifier {
 		$hamTotal = ($category == self::HAM) ? $hamTotal + 1: $hamTotal;
 		$spamTotal = ($category == self::SPAM) ? $spamTotal + 1: $spamTotal;
 
-		$unfilteredValues = array();
+		$values = array();
 
 		foreach ($Objects as $ClassifierObject) {
-			$id = $ClassifierObject->getId();
 			$type = $ClassifierObject->getType();
 			$value = $ClassifierObject->getValue();
+				
+			if (isset($values[$type][$value])) {
+				$values[$type][$value]['ham_count'] += ($category == self::HAM) ? 1 : 0;
+				$values[$type][$value]['spam_count'] += ($category == self::SPAM) ? 1 : 0;
+				$values[$type][$value]['spamicity'] = $this->_calculateSpamicity($values[$type][$value]['ham_count'], $values[$type][$value]['spam_count'], $hamTotal, $spamTotal);
+				continue;
+			}
+				
+			$id = $ClassifierObject->getId();
 			$hamCount = ($category == self::HAM) ? $ClassifierObject->getHamCount() + 1 : $ClassifierObject->getHamCount();
 			$spamCount = ($category == self::SPAM) ? $ClassifierObject->getSpamCount() + 1 : $ClassifierObject->getSpamCount();
 			$spamicity = $this->_calculateSpamicity($hamCount, $spamCount, $hamTotal, $spamTotal);
-			
-			$unfilteredValues[$type][] = array('id' => $id, 'type' => $type, 'value' => $value, 'ham_count' => $hamCount, 'spam_count' => $spamCount, 'spamicity' => $spamicity);
+				
+			$values[$type][$value] = array('id' => $id, 'type' => $type, 'value' => $value, 'ham_count' => $hamCount, 'spam_count' => $spamCount, 'spamicity' => $spamicity);
 		}
-		
-		$filteredValues = $this->_filterValues($unfilteredValues, $category);
-		$updatedObjects = $this->_createObjects($filteredValues);
-		
+
+		$updatedObjects = $this->_createObjects($values);
+
 		return $this->_Store->update($updatedObjects);
 	}
 
@@ -131,8 +138,8 @@ class ClassifierImpl implements Classifier {
 
 		return $Objects;
 	}
-	
-	
+
+
 	private function _createObjects($filteredValues) {
 		$updatedObjects = array();
 
@@ -141,35 +148,14 @@ class ClassifierImpl implements Classifier {
 				$updatedObjects[] = $this->_createObject($value['id'], $value['type'], $value['value'], $value['ham_count'], $value['spam_count'], $value['spamicity']);
 			}
 		}
-		
+
 		return $updatedObjects;
 	}
-	
-	
-	private function _filterValues($unfilteredValues, $category) {
-		$filteredValues = array();
-		
-		foreach($unfilteredValues as $type => $values) {
-			foreach ($values as $value) {
-				if (isset($filteredValues[$type][$value['value']])) {
-					if ($category == self::HAM) {
-						$filteredValues[$type][$value['value']]['ham_count'] = $filteredValues[$type][$value['value']]['ham_count'] + 1;
-					} else if ($category == self::SPAM) {
-						$filteredValues[$type][$value['value']]['spam_count'] = $filteredValues[$type][$value['value']]['spam_count'] + 1;
-					}
-				} else {
-					$filteredValues[$type][$value['value']] = $value;
-				}
-			}
-		}
-		
-		return $filteredValues;
-	}
-	
-	
+
+
 	private function _calculateSpamicity($hamCount, $spamCount, $hamTotal, $spamTotal) {
 		$spamicity = self::INITIAL_SPAMICITY_THRESHOLD;
-		
+
 		if ($hamCount == 0 && $spamCount == 0) {
 			$spamicity = self::INITIAL_SPAMICITY_THRESHOLD;
 		} else if ($hamCount < self::MINIMUM_COUNT && $spamCount == 0) {
@@ -183,7 +169,7 @@ class ClassifierImpl implements Classifier {
 			$spamPropability = bcdiv($spamCount, $spamTotal, 10);
 			$spamicity = bcdiv($spamPropability, bcadd($spamPropability, $hamPropability, 10), 3);
 		}
-		
+
 		return $spamicity;
 	}
 }
