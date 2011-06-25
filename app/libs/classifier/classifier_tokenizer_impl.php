@@ -5,13 +5,13 @@ class ClassifierTokenizerImpl implements ClassifierTokenizer {
 
 	public function tokenize(ClassifierDocument $Document) {
 		$tokens = array();
-		
-		$plainText = strtolower(strip_tags($Document->getText()));
-		$plainText = preg_match_all('[\w+]', $plainText, $matches);
-		$array = array_filter($matches[0], 'trim');
-		$array = array_filter($matches[0], 'strlen');
-		$tokens['text'] = $array;
-		
+
+		$plainText = strip_tags($Document->getText());
+		$plainText = preg_replace(array('/[,!:."§$%&\/\(\)=?*#]/u', '/\s\s+/u'), ' ', $plainText);
+		$array = explode(' ', mb_strtolower($plainText, 'UTF-8'));
+		$array = array_filter($array, 'trim');
+		$tokens['text'] = array_values($array);
+
 		return $tokens;
 	}
 
