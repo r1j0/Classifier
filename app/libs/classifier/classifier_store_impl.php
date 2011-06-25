@@ -4,8 +4,6 @@ class ClassifierStoreImpl implements ClassifierStore {
 	
 	private $_Objects;
 	private $_Model;
-	private $_hamTotal;
-	private $_spamTotal;
 	
 	public function __construct(ClassifierObjects $Objects) {
 		$this->_Objects = $Objects ? $Objects : new ClassifierObjectsImpl();
