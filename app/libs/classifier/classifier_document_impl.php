@@ -7,6 +7,11 @@ class ClassifierDocumentImpl implements ClassifierDocument {
 	private $_url;
 
 
+	public function getInstance() {
+		return new ClassifierDocumentImpl;
+	}
+	
+	
 	public function getText() {
 		return $this->_text;
 	}
