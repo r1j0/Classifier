@@ -19,8 +19,15 @@ class ClassifierImpl implements Classifier {
 	private $_spamThreshold;
 
 
-	public function __construct(ClassifierTokenizer $Tokinzer = null, ClassifierStore $Store = null, ClassifierObjects $Objects = null) {
-		$this->_Tokenizer = $Tokinzer ? $Tokenizer : new ClassifierTokenizerImpl();
+	/**
+	 * Default Classifier implementation.
+	 *
+	 * @param ClassifierTokenizer $Tokenizer
+	 * @param ClassifierStore $Store
+	 * @param ClassifierObjects $Objects
+	 */
+	public function __construct(ClassifierTokenizer $Tokenizer = null, ClassifierStore $Store = null, ClassifierObjects $Objects = null) {
+		$this->_Tokenizer = $Tokenizer ? $Tokenizer : new ClassifierTokenizerImpl();
 		$this->_Objects = $Objects ? $Objects : new ClassifierObjectsImpl();
 		$this->_Store = $Store ? $Store : new ClassifierStoreImpl($this->_Objects);
 		$this->_spamThreshold = self::SPAM_THRESHOLD;
@@ -85,19 +92,19 @@ class ClassifierImpl implements Classifier {
 		foreach ($Objects as $ClassifierObject) {
 			$type = $ClassifierObject->getType();
 			$value = $ClassifierObject->getValue();
-				
+
 			if (isset($values[$type][$value])) {
 				$values[$type][$value]['ham_count'] += ($category == self::HAM) ? 1 : 0;
 				$values[$type][$value]['spam_count'] += ($category == self::SPAM) ? 1 : 0;
 				$values[$type][$value]['spamicity'] = $this->_calculateSpamicity($values[$type][$value]['ham_count'], $values[$type][$value]['spam_count'], $hamTotal, $spamTotal);
 				continue;
 			}
-				
+
 			$id = $ClassifierObject->getId();
 			$hamCount = ($category == self::HAM) ? $ClassifierObject->getHamCount() + 1 : $ClassifierObject->getHamCount();
 			$spamCount = ($category == self::SPAM) ? $ClassifierObject->getSpamCount() + 1 : $ClassifierObject->getSpamCount();
 			$spamicity = $this->_calculateSpamicity($hamCount, $spamCount, $hamTotal, $spamTotal);
-				
+
 			$values[$type][$value] = array('id' => $id, 'type' => $type, 'value' => $value, 'ham_count' => $hamCount, 'spam_count' => $spamCount, 'spamicity' => $spamicity);
 		}
 
