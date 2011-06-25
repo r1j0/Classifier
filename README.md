@@ -1,7 +1,8 @@
 
-# Classifier is a simple self learning PHP library for detecting Spam messages.
+# Classifier 
 
-Classifier can be used to classify wether comments are ham or spam.
+Classifier is a simple self learning PHP library for detecting Spam messages.
+Usefull for classifying comments wether they are ham or spam.
 
 * Fast
 * Easy to extend with your own implementation.
