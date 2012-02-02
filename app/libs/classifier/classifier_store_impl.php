@@ -1,9 +1,9 @@
 <?php
-
 class ClassifierStoreImpl implements ClassifierStore {
 	
 	private $_Objects;
 	private $_Model;
+	
 	
 	public function __construct(ClassifierObjects $Objects) {
 		$this->_Objects = $Objects ? $Objects : new ClassifierObjectsImpl();
@@ -65,5 +65,5 @@ class ClassifierStoreImpl implements ClassifierStore {
 
 		return $Objects;
 	}
-	
 }
+?>

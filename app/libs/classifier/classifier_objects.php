@@ -1,9 +1,8 @@
 <?php
-
 interface ClassifierObjects {
 
 
-	public function getInstance();
+	public static function getInstance();
 	
 	
 	public function getId();
@@ -40,5 +39,5 @@ interface ClassifierObjects {
 
 
 	public function setSpamicity($spamicity);
-
 }
+?>

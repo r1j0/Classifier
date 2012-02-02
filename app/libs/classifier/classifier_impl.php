@@ -11,6 +11,7 @@ class ClassifierImpl implements Classifier {
 	const INITIAL_SPAMICITY_THRESHOLD = 0.4;
 	const INITIAL_HAM_SPAMICITY_THRESHOLD = 0.1;
 	const INITIAL_SPAM_SPAMICITY_THRESHOLD = 0.99;
+	const PRECISION_DIGITS = 10;
 
 	private $_Store;
 	private $_Tokenizer;
@@ -60,17 +61,16 @@ class ClassifierImpl implements Classifier {
 		foreach ($Objects as $ClassifierObject) {
 			if ($i == 0) {
 				$multiplierResult = $ClassifierObject->getSpamicity();
-				$additionResult = bcsub(1, $ClassifierObject->getSpamicity(), 10);
+				$additionResult = bcsub(1, $ClassifierObject->getSpamicity(), self::PRECISION_DIGITS);
 				$i++;
 				continue;
 			}
 
-
-			$multiplierResult = bcmul($multiplierResult, $ClassifierObject->getSpamicity(), 10);
-			$additionResult = bcmul($additionResult, (1 - $ClassifierObject->getSpamicity()), 10);
+			$multiplierResult = bcmul($multiplierResult, $ClassifierObject->getSpamicity(), self::PRECISION_DIGITS);
+			$additionResult = bcmul($additionResult, (1 - $ClassifierObject->getSpamicity()), self::PRECISION_DIGITS);
 		}
 
-		$denominator = bcadd($multiplierResult, $additionResult, 10);
+		$denominator = bcadd($multiplierResult, $additionResult, self::PRECISION_DIGITS);
 
 		if ($multiplierResult == 0 || $denominator == 0) {
 			$this->_rating = 0.0;
@@ -189,11 +189,12 @@ class ClassifierImpl implements Classifier {
 		} else if ($spamTotal == 0) {
 			$spamicity = $category == self::HAM ? self::INITIAL_HAM_SPAMICITY_THRESHOLD : self::INITIAL_SPAM_SPAMICITY_THRESHOLD;
 		} else {
-			$hamPropability = bcdiv($hamCount, $hamTotal, 10);
-			$spamPropability = bcdiv($spamCount, $spamTotal, 10);
-			$spamicity = bcdiv($spamPropability, bcadd($spamPropability, $hamPropability, 10), 3);
+			$hamPropability = bcdiv($hamCount, $hamTotal, self::PRECISION_DIGITS);
+			$spamPropability = bcdiv($spamCount, $spamTotal, self::PRECISION_DIGITS);
+			$spamicity = bcdiv($spamPropability, bcadd($spamPropability, $hamPropability, self::PRECISION_DIGITS), 3);
 		}
 
 		return $spamicity;
 	}
 }
+?>

@@ -1,5 +1,4 @@
 <?php
-
 class ClassifierObjectsImpl implements ClassifierObjects {
 
 	private $_id;
@@ -10,7 +9,7 @@ class ClassifierObjectsImpl implements ClassifierObjects {
 	private $_spamicity;
 
 
-	public function getInstance() {
+	public static function getInstance() {
 		return new ClassifierObjectsImpl();
 	}
 
@@ -74,3 +73,4 @@ class ClassifierObjectsImpl implements ClassifierObjects {
 		$this->_spamicity = $spamicity;
 	}
 }
+?>

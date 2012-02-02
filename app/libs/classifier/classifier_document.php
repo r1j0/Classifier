@@ -1,9 +1,8 @@
 <?php
-
 interface ClassifierDocument {
 
 
-	public function getInstance();
+	public static function getInstance();
 
 
 	public function getText();
@@ -22,5 +21,5 @@ interface ClassifierDocument {
 
 
 	public function setUrl($url);
-
 }
+?>

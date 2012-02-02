@@ -1,5 +1,4 @@
 <?php
-
 interface ClassifierStore {
 
 
@@ -22,5 +21,5 @@ interface ClassifierStore {
 	 * @param array ClassifierObjects $classifierObjects
 	 */
 	public function update($classifierObjects);
-
 }
+?>

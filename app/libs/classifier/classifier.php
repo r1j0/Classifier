@@ -1,5 +1,4 @@
 <?php
-
 interface Classifier {
 
 
@@ -95,5 +94,5 @@ interface Classifier {
 	 * @return float
 	 */
 	public function getRating();
-
 }
+?>

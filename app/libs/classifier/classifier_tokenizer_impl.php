@@ -1,5 +1,4 @@
 <?php
-
 class ClassifierTokenizerImpl implements ClassifierTokenizer {
 
 
@@ -14,5 +13,5 @@ class ClassifierTokenizerImpl implements ClassifierTokenizer {
 
 		return $tokens;
 	}
-
 }
+?>

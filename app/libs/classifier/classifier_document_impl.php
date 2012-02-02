@@ -1,5 +1,4 @@
 <?php
-
 class ClassifierDocumentImpl implements ClassifierDocument {
 
 	private $_text;
@@ -7,7 +6,7 @@ class ClassifierDocumentImpl implements ClassifierDocument {
 	private $_url;
 
 
-	public function getInstance() {
+	public static function getInstance() {
 		return new ClassifierDocumentImpl;
 	}
 	
@@ -41,3 +40,4 @@ class ClassifierDocumentImpl implements ClassifierDocument {
 		$this->_url = $url;
 	}
 }
+?>
